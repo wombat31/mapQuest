@@ -19,6 +19,8 @@ map = [
 var CANVAS_WIDTH = 450;
 var CANVAS_HEIGHT = 300;
 var TILESIZE = 30;
+var ARCHIEHEIGHT = 15;
+var ARCHIEWIDTH = 15;
     
 
 //SETUP
@@ -31,10 +33,16 @@ var archieX = 200;
 var archieY = 130;
 var mapX = 0;
 var mapY = 0;
+var relativeX = 0;
+var relativeY = 0;
+var direction = "";
+
 var leftKeyPressed = false;
 var rightKeyPressed = false;
 var upKeyPressed = false;
 var downKeyPressed = false;
+
+var legalMove = true;
 
 var mapImage = new Image();
 mapImage.src = 'images/backgroundTiles.png';
@@ -45,6 +53,64 @@ window.addEventListener('load',start);
 
 window.addEventListener('keydown', onKeyDown);
 window.addEventListener('keyup', onKeyUp);
+
+function checkMove(Xpos, Ypos, dir){
+    var xIndex;
+    var yIndex;
+    console.log("Dir: "+ dir)
+    console.log("relX: " + Xpos);
+    console.log("relY: " + Ypos);
+    topLeftYIndex = Math.floor(Ypos/30);
+    
+    bottomRightYIndex = Math.floor((Ypos+ARCHIEHEIGHT)/30);
+    topLeftXIndex = Math.floor(Xpos/30);
+    bottomRightXIndex = Math.floor((Xpos+ARCHIEWIDTH)/30);
+    console.log("topLeftYIndex: " + topLeftYIndex);
+    console.log("topLeftXIndex: " + topLeftXIndex);
+    console.log("bottomRightXIndex: " + bottomRightXIndex);
+    console.log("bottomRightYIndex: " + bottomRightYIndex);
+    if(map[topLeftYIndex][topLeftXIndex] != "." || map[bottomRightYIndex][bottomRightXIndex] != "." || map[topLeftYIndex][bottomRightXIndex] != "." || map[bottomRightYIndex][topLeftXIndex] != "."){
+        legalMove = false;
+        if(dir == "S"){
+            archieY -= 5;
+            legalMove = true;
+        } else if (dir == "N"){
+            archieY += 5;
+            legalMove = true;
+        } else if(dir == "E"){
+            archieX -= 5;
+            legalMove = true;
+        } else if(dir == "W"){
+            archieX += 5;
+            legalMove = true;
+        } else if(dir == "NW"){
+            archieX += 5;
+            archieY += 5;
+            legalMove = true;
+        } else if(dir == "NE"){
+            archieX -=5;
+            archieY +=5;
+            legalMove = true;
+        } else if (dir == "SW"){
+            archieX += 5;
+            archieY -=5;
+            legalMove = true;
+        } else if (dir == "SE"){
+            archieX -=5;
+            archieY -=5;
+            legalMove = true;
+        } 
+        
+    } else {
+        legalMove = true;
+    }
+    console.log("legal Move: " + legalMove);
+    //consider the top of Archie
+    //consider the bottom of Archie
+    //consider the left of Archie
+    //consider the right of Archie
+
+}
 
 function start(){
     window.requestAnimationFrame(mainLoop);
@@ -125,96 +191,119 @@ function mainLoop(){
 function onKeyDown(event){
     if(event.keyCode === 37){
         leftKeyPressed = true;
+        direction = "W";
     } else if(event.keyCode === 39) {
         rightKeyPressed = true;
+        direction = "E";
     } else if(event.keyCode === 38){
         upKeyPressed = true;
+        direction = "N";
     } else if(event.keyCode === 40){
         downKeyPressed = true;
-    }
+        direction = "S";
+    } 
+
+    if (leftKeyPressed && upKeyPressed) {
+        direction = "NW";
+    } else if (leftKeyPressed && downKeyPressed){
+        direction = "SW";
+    } else if (rightKeyPressed && upKeyPressed){
+        direction = "NE";
+    } else if (rightKeyPressed && downKeyPressed){
+        direction = "SE";
+    } 
 }
 
 function onKeyUp(event){
     if(event.keyCode === 37){
         leftKeyPressed = false;
+        
     } else if(event.keyCode === 39){
         rightKeyPressed = false;
     } else if(event.keyCode === 38){
         upKeyPressed = false;
     } else if(event.keyCode === 40){
         downKeyPressed = false;
+    } else if (event.keycode === 37 && event.keycode === 38){
+        leftKeyPressed = false;
+        upKeyPressed = false;
     }
 }
 
 
 //UPDATING
 function update(){
-    if(leftKeyPressed && upKeyPressed){
-        if(archieX > 100 && archieY > 100){
-            archieX -= 1;
-            archieY -= 1;
-        } else {
-            mapX += 1;
-            mapY += 1;
+    if(legalMove){
+        if(leftKeyPressed && upKeyPressed){
+            if(archieX > 100 && archieY > 100){
+                archieX -= 1;
+                archieY -= 1;
+            } else {
+                mapX += 1;
+                mapY += 1;
+            }
+            
+            
+        } else if (rightKeyPressed && upKeyPressed){
+            if(archieX < 250 && archieY > 100){
+                archieX += 1;
+                archieY -= 1;
+            } else {
+                mapX -= 1;
+                mapY += 1;
+            }
+            
+        } else if (leftKeyPressed && downKeyPressed)  {
+            if(archieX > 100 && archieY < 200){
+                archieX -= 1;
+                archieY += 1;
+            } else {
+                mapX += 1;
+                mapY -= 1;
+            }
+            
+        } else if (rightKeyPressed && downKeyPressed)  {
+            if(archieX < 250 && archieY < 200){
+                archieX += 1;
+                archieY += 1;
+            } else {
+                mapX -= 1;
+                mapY -= 1;
+            }
+            
+        } else if(leftKeyPressed){
+            if(archieX > 100){
+                archieX -= 1;
+            } else {
+                mapX += 1;
+            }
+            
+        } else if (rightKeyPressed){
+            if(archieX < 350){
+                archieX += 1;
+            } else {
+                mapX -= 1;
+            }
+            
+        } else if (upKeyPressed){
+            if (archieY > 100){
+                archieY -= 1;
+            } else {
+                mapY += 1;
+            }
+            
+        } else if (downKeyPressed){
+            if (archieY < 200){
+                archieY += 1;
+            } else {
+                mapY -= 1;
+            }
+            
         }
-        
-    } else if (rightKeyPressed && upKeyPressed){
-        if(archieX < 250 && archieY > 100){
-            archieX += 1;
-            archieY -= 1;
-        } else {
-            mapX -= 1;
-            mapY += 1;
-        }
-        
-    } else if (leftKeyPressed && downKeyPressed)  {
-        if(archieX > 100 && archieY < 200){
-            archieX -= 1;
-            archieY += 1;
-        } else {
-            mapX += 1;
-            mapY -= 1;
-        }
-        
-    } else if (rightKeyPressed && downKeyPressed)  {
-        if(archieX < 250 && archieY < 200){
-            archieX += 1;
-            archieY += 1;
-        } else {
-            mapX -= 1;
-            mapY -= 1;
-        }
-        
-    } else if(leftKeyPressed){
-        if(archieX > 100){
-            archieX -= 1;
-        } else {
-            mapX += 1;
-        }
-        
-    } else if (rightKeyPressed){
-        if(archieX < 350){
-            archieX += 1;
-        } else {
-            mapX -= 1;
-        }
-        
-    } else if (upKeyPressed){
-        if (archieY > 100){
-            archieY -= 1;
-        } else {
-            mapY += 1;
-        }
-        
-    } else if (downKeyPressed){
-        if (archieY < 200){
-            archieY += 1;
-        } else {
-            mapY -= 1;
-        }
-        
+        relativeX = archieX - mapX;
+        relativeY = archieY - mapY;
+        checkMove(relativeX,relativeY,direction);
     }
-    
 }
 
 
